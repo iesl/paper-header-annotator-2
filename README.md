@@ -1,4 +1,4 @@
-# Dymo
+# paper-header-annotator-2
 A prototype web application for labeling/annotating PDF files stored as SVG documents (see
 [iesl-pdf-to-text](https://github.com/iesl/iesl-pdf-to-text) for how they're generated). It has a bare-bones UI and
 layout (i.e., no Bootstrap or equivalent) and no production-level features such as authentication, authorization,
@@ -45,7 +45,7 @@ TODO:
 
 
 ## SVG rendering issues
-There are two know issues where the SVG files do not show correctly in browsers:
+There are two known issues where the SVG files do not show correctly in browsers:
 
 1. Some files have a black background, such as 0158.pdf.svg in the MIT corpus.
 2. In Firefox 39.0, some files have overlapping text, such as 4789.pdf.svg in the MIT corpus. Chrome 44 renders correctly.
