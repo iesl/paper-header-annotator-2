@@ -5,26 +5,24 @@
 
     <hr/> <!-- -------------------------------- -->
     <form onsubmit="return false;">
-        <input id="save-button" type="button" value="Save">
-        <input id="revert-button" type="button" value="Revert">
+        <input id="save-button" type="button" value="Save" title="Save the document's changes.">
+        <input id="revert-button" type="button" value="Revert" title="Discard changes and reload the document.">
         |
-        <select id="type-select">
+        <select id="type-select" title="Select the type to use for the next new rectangle.">
             <option value="title">Title</option>
             <option value="abstract">Abstract</option>
             <option value="author">Author</option>
         </select>
-        <input id="add-rect-button" type="button" value="+R">
-        <input id="delete-rect-button" type="button" value="-R">
-        <input id="get-text-button" type="button" value="Text">
+        <input id="add-rect-button" type="button" value="+R" title="Add a rectangle using the type selected in the dropdown.">
+        <input id="delete-rect-button" type="button" value="-R" title="Remove a rectangle. Select one rect first.">
+        <input id="get-text-button" type="button" value="Text" title="Get text corresponding to a rectangle. Select one rect first.">
         |
-        <input id="add-link-button" type="button" value="+L">
-        <input id="delete-link-button" type="button" value="-L">
+        <input id="add-link-button" type="button" value="+L" title="Add a link between two rectangles. Select two of the same label that do not have a link between them.">
+        <input id="delete-link-button" type="button" value="-L" title="Remove a link between two rectangles. Select two that have a link between them.">
         |
         <div style="font-family: 'Arial'; font-size: 12px; color:red ; display:inline;">1 Title</div>
         <div style="font-family: 'Arial'; font-size: 12px; color:blue ; display:inline">2 Abstract</div>
         <div style="font-family: 'Arial'; font-size: 12px; color:green ; display:inline">3 Author</div>
-        |
-        <input id="help-button" type="button" value="?">
     </form>
 
     <hr/> <!-- -------------------------------- -->

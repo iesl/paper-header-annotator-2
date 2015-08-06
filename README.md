@@ -7,6 +7,15 @@ SvgFileDAOTest. Also missing is a comprehensive set of guidelines that include m
 possibly confusing cases.
 
 
+# Running
+Download the [Typesafe Activator](https://www.typesafe.com/get-started) and run:
+```
+$ cd <repos>/playframework_temp/
+$ <activator_location>/activator-dist-1.3.5/activator run
+```
+It should compile the necessary files and then start a local server at [localhost:9000](http://localhost:9000).
+
+
 # Dependencies
 * Front end: [Fabric.js Javascript Canvas Library](http://fabricjs.com/) for the rectangles.
 * Back end: [Play Framework](https://playframework.com/) for the web application, using the Java API.
@@ -34,9 +43,14 @@ TODO:
     * Q: is the entire header itself to be marked?
 * add shortcut key for addLinkBetweenTwoRects() and deleteLinkBetweenTwoRects()
 * shortcut keys should be enabled/disabled same as buttons - see updateButtonStates()
+* style the interface using [Bootstrap](http://getbootstrap.com/) or similar
+* add document paging to the index 
 
 
-## Back end:
+## Back end
+Currently using a filesystem-based scheme for storing the SVG files and their corresponding JSON files in the same
+directory. The program creates empty JSON files for any missing ones when starting up.  
+
 TODO:
 
 * controllers.Application.getDocRectText(). Requires modifying [iesl-pdf-to-text](https://github.com/iesl/iesl-pdf-to-text)
@@ -51,17 +65,15 @@ There are two known issues where the SVG files do not show correctly in browsers
 2. In Firefox 39.0, some files have overlapping text, such as 4789.pdf.svg in the MIT corpus. Chrome 44 renders correctly.
 
 
-# Running
-Download the [Typesafe Activator](https://www.typesafe.com/get-started) and run:
-```
-$ cd <repos>/playframework_temp/
-$ <activator_location>/activator-dist-1.3.5/activator run
-```
-It should compile the necessary files and then start a local server at [localhost:9000](http://localhost:9000).
+# Documentation
+The UI is a straightforward direct manipulation one where users work with rectangle objects. Click to select, drag
+to move, drag resize handles to resize, click the delete rectangle button to remove, etc. The only feature that's non-
+obvious is how to add and remove links between rectangles. To add a link, select exactly two rectangles with the same
+label and no existing link and then click the add link button. To remove a link, select two rectangles with an existing
+link and the click the remove link button.
 
-
-# Front end docs: Keystroke shortcuts
-## Types
+## Keystroke shortcuts
+### Types
 
 <pre>
           1: set current type to Title
@@ -73,13 +85,13 @@ It should compile the necessary files and then start a local server at [localhos
      Escape: reset filter
 </pre>
 
-## Create
+### Create
 
 <pre>
 +: create new annotation using current type
 </pre>
 
-## Move & Resize
+### Move & Resize
 
 <pre>
                      arrow key: move selection 1px
@@ -88,21 +100,21 @@ It should compile the necessary files and then start a local server at [localhos
  shift  +  option  + arrow key: resize selection 10px
 </pre>
 
-## Delete/Duplicate
+### Delete/Duplicate
 
 <pre>
 backspace|delete: delete selection
-   <control> + d: duplicate selection
+    control  + d: duplicate selection
 </pre>
 
-## Select
+### Select
 
 <pre>
           tab: select next
  shift  + tab: select previous
 </pre>
 
-## Text Feedback
+### Text Feedback
 
 <pre>
 x: display text for selection
