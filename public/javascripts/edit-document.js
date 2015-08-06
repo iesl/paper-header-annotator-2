@@ -1,3 +1,15 @@
+/*
+'variables' passed into this file from edit.scala.html:
+
+o documentIconURI - icon to use at the top of the file
+o fileRepositoryURI - where "" is located
+o fileName - name of the svg file being edited
+
+ */
+
+console.log('variables: documentIconURI=' + documentIconURI + ', fileRepositoryURI=' + fileRepositoryURI + ', fileName=' + fileName);
+
+
 function getColorForLabel(label) {
     var labelToColor = {title: 'red', abstract: 'blue', author: 'green'};
     return labelToColor[label] || 'darkGray';
@@ -23,6 +35,11 @@ $(function() {
     loadSvg();
 });
 
+function setLoadingHeader(html) {
+    var imageHtml = '<img src="' + documentIconURI + '"/> ';
+    $("#loading-header").html(imageHtml + html);
+}
+
 /**
  * Loads my document's SVG file asynchronously so that we are guaranteed its size is correct. This works around an
  * SVG issue where the document is ready but the <img> element containing the SVG file src was not fully loaded,
@@ -33,8 +50,9 @@ $(function() {
  * TODO: handle errors - no image or annotations file
  */
 function loadSvg() {
-    var uri = "/assets/images/" + fileName;   // TODO clean lookup of static file location. TODO use separate URI endpoint
-    $("#loading-header").html("Getting document &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote;...");
+    var uri = fileRepositoryURI + '/' + fileName;
+    setLoadingHeader("Getting document &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote;...");
+    console.log('loadSvg: ' + uri);
     $.get(uri, function(svgxml) {
         // add #svg-image to #overlay-container
         var svgDocEle = document.importNode(svgxml.documentElement, true);
@@ -61,7 +79,7 @@ function loadSvg() {
 
 function loadAnnotations() {
     // AJAX call to GET annotation JSON
-    $("#loading-header").html("Loading annotations &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote;...");
+    setLoadingHeader("Loading annotations &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote;...");
     $.get('/docs/' + fileName + '/annotations',    // TODO cleaner way to get URI
         function(jsonAnnotListStr) {
             var fabricCanvas = $("#fabric-canvas")[0].fabric;
@@ -75,7 +93,7 @@ function loadAnnotations() {
             }
             updateButtonStates([]);
             fabricCanvas.renderAll();
-            $("#loading-header").html("Loaded &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote; with "
+            setLoadingHeader("Loaded &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote; with "
                 + annotList.length + " annotation(s)");
         }
     );
@@ -279,7 +297,7 @@ function saveAnnotations() {
         contentType: 'application/json',
         data: JSON.stringify(annotObsToSerialize),
         success: function(data) {
-            $("#loading-header").html("Loaded file &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote; with "
+            setLoadingHeader("Loaded file &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote; with "
                 + annotObsToSerialize.length + " annotation(s)");
         }
     });

@@ -22,7 +22,7 @@ public class Application {
 
     static SvgFileDAO svgFileDAO;
     static {
-        File publicImagesDir = Play.application().getFile("/public/images");    // full path
+        File publicImagesDir = Play.application().getFile("/public/svg-repo");  // full path
         String svgDirectory = publicImagesDir.getAbsolutePath();
         svgFileDAO = new SvgFileDAO(svgDirectory);
         System.out.println("SvgFileDAO initialized on directory: '" + svgDirectory + "'");
@@ -44,7 +44,7 @@ public class Application {
         if (doc == null) {
             return notFound("fileName not found: '" + fileName + "'");
         }
-        return ok(views.html.edit.render(fileName));
+        return ok(views.html.edit.render(doc));
     }
 
 
