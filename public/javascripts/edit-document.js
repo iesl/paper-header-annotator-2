@@ -7,14 +7,6 @@ o fileName - name of the svg file being edited
 
  */
 
-console.log('variables: documentIconURI=' + documentIconURI + ', fileRepositoryURI=' + fileRepositoryURI + ', fileName=' + fileName);
-
-
-function getColorForLabel(label) {
-    var labelToColor = {title: 'red', abstract: 'blue', author: 'green'};
-    return labelToColor[label] || 'darkGray';
-}
-
 $(function() {
     // set up edit controls
     $('#revert-button').click(loadAnnotations);
@@ -35,6 +27,15 @@ $(function() {
     loadSvg();
 });
 
+function getColorForLabel(label) {
+    var labelToColor = {title: 'red', abstract: 'blue', author: 'green'};
+    return labelToColor[label] || 'darkGray';
+}
+
+function getFabricCanvas() {
+    return $("#fabric-canvas")[0].fabric;
+}
+
 function setLoadingHeader(html) {
     var imageHtml = '<img src="' + documentIconURI + '"/> ';
     $("#loading-header").html(imageHtml + html);
@@ -52,7 +53,6 @@ function setLoadingHeader(html) {
 function loadSvg() {
     var uri = fileRepositoryURI + '/' + fileName;
     setLoadingHeader("Getting document &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote;...");
-    console.log('loadSvg: ' + uri);
     $.get(uri, function(svgxml) {
         // add #svg-image to #overlay-container
         var svgDocEle = document.importNode(svgxml.documentElement, true);
@@ -82,7 +82,7 @@ function loadAnnotations() {
     setLoadingHeader("Loading annotations &OpenCurlyQuote;" + fileName + "&CloseCurlyQuote;...");
     $.get('/docs/' + fileName + '/annotations',    // TODO cleaner way to get URI
         function(jsonAnnotListStr) {
-            var fabricCanvas = $("#fabric-canvas")[0].fabric;
+            var fabricCanvas = getFabricCanvas();
             var jsonAnnotListStrRepl = jsonAnnotListStr.replace(/&quot;/g,'"');     // TODO HACK. Play/Jackson issue?
             var annotList = JSON.parse(jsonAnnotListStrRepl);
             fabricCanvas.clear();
@@ -126,7 +126,7 @@ function addAnnotationFabricObs(label, rects) {
 }
 
 function addAnnotationRect(label, x, y, width, height) {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var rect = new fabric.Rect({
         left: x,
         top: y,
@@ -160,7 +160,7 @@ function addAnnotationRect(label, x, y, width, height) {
 function addAnnotationLine(rect1, rect2) {
     // make Line between rect centers. application properties: a Line has properties for the two Rects that it
     // connects: annotRect1 and annotRect2
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var line = new fabric.Line([0, 0, 0, 0], {      // updated by updateLineEndpoints()
         stroke: getColorForLabel(rect1.annotLabelType),
         strokeWidth: 2
@@ -184,7 +184,7 @@ function addAnnotationLine(rect1, rect2) {
 }
 
 function removeAnnotationLine(line) {   // twin to addAnnotationLine()
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var rect1 = line.annotRect1;
     var rect2 = line.annotRect2;
 
@@ -237,7 +237,7 @@ function removeAnnotationLine(line) {   // twin to addAnnotationLine()
  */
 function saveAnnotations() {
     // start by collecting separate Rects and Lines lists
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var allFabricObjs = fabricCanvas.getObjects();
     var annotRects = [];
     var annotLines = [];
@@ -389,6 +389,10 @@ function handleObjectModified(e) {
 }
 
 function updateRectEndpoints(rect) {
+    if (!isAnnotatedRect(rect)) {
+        return;
+    }
+
     rect.annotLines.forEach(function (line) {
         updateLineEndpoints(line);
     });
@@ -404,7 +408,7 @@ function updateLineEndpoints(line) {
     var y2 = rect2.top + (rect2.height / 2);
     line.set({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2});
 
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     fabricCanvas.renderAll();
 }
 
@@ -484,7 +488,7 @@ function handleKeystroke(e) {
 }
 
 function deleteSelection() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
     deleteRectAndLinkedLines(activeObj);
     return true;
@@ -492,7 +496,7 @@ function deleteSelection() {
 
 function deleteRectAndLinkedLines(rect) {
     // remove the Rect itself
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     fabricCanvas.remove(rect);
 
     // remove any linked Lines from fabric, and remove from other Rects' annotLines
@@ -508,7 +512,7 @@ function deleteRectAndLinkedLines(rect) {
 }
 
 function addLineBetweenTwoRects() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var selectedRects = fabricCanvas.getActiveGroup().getObjects();     // assume enabled properly: should be two Rects selected, same annotLabelType, no existing link between them
     var rect1 = selectedRects[0];   // arbitrary choice of 1 and 2
     var rect2 = selectedRects[1];
@@ -520,7 +524,7 @@ function addLineBetweenTwoRects() {
 }
 
 function deleteLineBetweenTwoRects() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var selectedRects = fabricCanvas.getActiveGroup().getObjects();     // assume enabled properly: should be two Rects selected, existing link between them
     var rect1 = selectedRects[0];   // arbitrary choice of 1 and 2
     var rect2 = selectedRects[1];
@@ -530,7 +534,7 @@ function deleteLineBetweenTwoRects() {
 }
 
 function selectNextOrPrev(isPrevious) {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     allObjs = fabricCanvas.getObjects();
     var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
     var newIndex;
@@ -552,7 +556,7 @@ function selectNextOrPrev(isPrevious) {
 
 function setFilterAnnotationType(typeName) {
     // dim all annnotation rects but those of typeName
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     allObjs = fabricCanvas.getObjects();
     allObjs.forEach(function(obj) {
         if ((obj.annotLabelType == typeName) || !typeName) {
@@ -571,7 +575,7 @@ function setNewAnnotationType(typeName) {
 }
 
 function duplicateSelection() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
     var newRect = addAnnotationRect(activeObj.annotLabelType, activeObj.left + 10, activeObj.top + 10,
         activeObj.width, activeObj.height);
@@ -581,7 +585,7 @@ function duplicateSelection() {
 // TODO future: let users drag an area on the canvas to create - mouse:down, mouse:move (draw), mouse:up (create).
 // for now, add a rect with fixed position and size
 function addAnnotation() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var newAnnotType = $('#type-select').val();
     var newRect = addAnnotationRect(newAnnotType, 10, 10, 100, 25);
     fabricCanvas.setActiveObject(newRect);
@@ -589,7 +593,7 @@ function addAnnotation() {
 }
 
 function getTextForSelection() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
     if (!activeObj) {
         return;
@@ -606,7 +610,7 @@ function getTextForSelection() {
 }
 
 function nudgeOrResizeSelection(isResize, deltaX, deltaY) {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    var fabricCanvas = getFabricCanvas();
     var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
     if (isResize) {
         activeObj.set({'width': activeObj.width + deltaX,
