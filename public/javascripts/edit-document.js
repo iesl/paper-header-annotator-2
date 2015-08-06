@@ -12,8 +12,8 @@ $(function() {
     $('#delete-rect-button').click(deleteSelection);
     $('#get-text-button').click(getTextForSelection);
 
-    $('#add-link-button').click(addLinkBetweenTwoRects);
-    $('#delete-link-button').click(deleteLinkBetweenTwoRects);
+    $('#add-link-button').click(addLineBetweenTwoRects);
+    $('#delete-link-button').click(deleteLineBetweenTwoRects);
 
     // set up shortcut dispatching
     $(document).keydown(handleKeystroke);
@@ -286,36 +286,6 @@ function saveAnnotations() {
 }
 
 
-<!-- misc. functions. TODO: rearrange/group logically -->
-
-function getTextForSelection() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
-    var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
-    if (!activeObj) {
-        return;
-    }
-
-    var rectData =  {'label': activeObj.annotLabelType,
-        'x': activeObj.left, 'y': activeObj.top, 'width': activeObj.width, 'height': activeObj.height};
-    $.get('/docs/' + fileName + '/text',       // TODO cleaner way to get URI
-        rectData,
-        function(data) {
-            window.alert('text: ' + data);      // TODO show in reasonable way - overlay on current selection, sidebar, etc.
-        }
-    );
-}
-
-// TODO future: let users drag an area on the canvas to create - mouse:down, mouse:move (draw), mouse:up (create).
-// for now, add a rect with fixed position and size
-function addAnnotation() {
-    var fabricCanvas = $("#fabric-canvas")[0].fabric;
-    var newAnnotType = $('#type-select').val();
-    var newRect = addAnnotationRect(newAnnotType, 10, 10, 100, 25);
-    fabricCanvas.setActiveObject(newRect);
-    setFilterAnnotationType(null);
-}
-
-
 <!-- selection-related functions -->
 
 // returns true if fabricObj is a rect with a label. importantly, returns false if fabricObj is a group
@@ -519,7 +489,7 @@ function deleteRectAndLinkedLines(rect) {
     }
 }
 
-function addLinkBetweenTwoRects() {
+function addLineBetweenTwoRects() {
     var fabricCanvas = $("#fabric-canvas")[0].fabric;
     var selectedRects = fabricCanvas.getActiveGroup().getObjects();     // assume enabled properly: should be two Rects selected, same annotLabelType, no existing link between them
     var rect1 = selectedRects[0];   // arbitrary choice of 1 and 2
@@ -531,14 +501,35 @@ function addLinkBetweenTwoRects() {
     addAnnotationLine(rect1, rect2);
 }
 
-function deleteLinkBetweenTwoRects() {
+function deleteLineBetweenTwoRects() {
     var fabricCanvas = $("#fabric-canvas")[0].fabric;
     var selectedRects = fabricCanvas.getActiveGroup().getObjects();     // assume enabled properly: should be two Rects selected, existing link between them
     var rect1 = selectedRects[0];   // arbitrary choice of 1 and 2
     var rect2 = selectedRects[1];
     var lineBetween = getLineBetweenRects(selectedRects[0], selectedRects[1]);
-    fabricCanvas.deactivateAllWithDispatch();   // clear the selection, for consistency with addLinkBetweenTwoRects()
+    fabricCanvas.deactivateAllWithDispatch();   // clear the selection, for consistency with addLineBetweenTwoRects()
     removeAnnotationLine(lineBetween);
+}
+
+function selectNextOrPrev(isPrevious) {
+    var fabricCanvas = $("#fabric-canvas")[0].fabric;
+    allObjs = fabricCanvas.getObjects();
+    var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
+    var newIndex;
+    if (!activeObj) {
+        newIndex = isPrevious ? allObjs.length - 1 : 0;
+    } else {
+        activeObjIdx = allObjs.indexOf(activeObj);
+        newIndex = activeObjIdx + (isPrevious ? - 1 : 1);   // might go out of bounds
+        if (newIndex == -1){
+            newIndex = allObjs.length - 1;
+        } else if (newIndex == allObjs.length) {
+            newIndex = 0;
+        }
+    }
+    objToSelect = allObjs[newIndex];
+    fabricCanvas.setActiveObject(objToSelect);
+    return true;
 }
 
 function setFilterAnnotationType(typeName) {
@@ -569,25 +560,31 @@ function duplicateSelection() {
     fabricCanvas.setActiveObject(newRect);
 }
 
-function selectNextOrPrev(isPrevious) {
+// TODO future: let users drag an area on the canvas to create - mouse:down, mouse:move (draw), mouse:up (create).
+// for now, add a rect with fixed position and size
+function addAnnotation() {
     var fabricCanvas = $("#fabric-canvas")[0].fabric;
-    allObjs = fabricCanvas.getObjects();
+    var newAnnotType = $('#type-select').val();
+    var newRect = addAnnotationRect(newAnnotType, 10, 10, 100, 25);
+    fabricCanvas.setActiveObject(newRect);
+    setFilterAnnotationType(null);
+}
+
+function getTextForSelection() {
+    var fabricCanvas = $("#fabric-canvas")[0].fabric;
     var activeObj = fabricCanvas.getActiveObject();     // assume enabled properly: should be one Rect selected
-    var newIndex;
     if (!activeObj) {
-        newIndex = isPrevious ? allObjs.length - 1 : 0;
-    } else {
-        activeObjIdx = allObjs.indexOf(activeObj);
-        newIndex = activeObjIdx + (isPrevious ? - 1 : 1);   // might go out of bounds
-        if (newIndex == -1){
-            newIndex = allObjs.length - 1;
-        } else if (newIndex == allObjs.length) {
-            newIndex = 0;
-        }
+        return;
     }
-    objToSelect = allObjs[newIndex];
-    fabricCanvas.setActiveObject(objToSelect);
-    return true;
+
+    var rectData =  {'label': activeObj.annotLabelType,
+        'x': activeObj.left, 'y': activeObj.top, 'width': activeObj.width, 'height': activeObj.height};
+    $.get('/docs/' + fileName + '/text',       // TODO cleaner way to get URI
+        rectData,
+        function(data) {
+            window.alert('text: ' + data);      // TODO show in reasonable way - overlay on current selection, sidebar, etc.
+        }
+    );
 }
 
 function nudgeOrResizeSelection(isResize, deltaX, deltaY) {
