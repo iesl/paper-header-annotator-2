@@ -1,5 +1,6 @@
 import models.Annotation;
 import models.Document;
+import models.Rectangle;
 import models.SvgFileDAO;
 import org.junit.Test;
 
@@ -7,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -44,8 +46,8 @@ public class SvgFileDAOTest {
         assertEquals(0, doc1.getAnnotations().size());
 
         // create and save some annotations
-        Annotation annot1 = new Annotation("label 1", 0, 1, 2, 3);
-        Annotation annot2 = new Annotation("label 2", 4, 5, 6, 7);
+        Annotation annot1 = new Annotation("label 1", Arrays.asList(new Rectangle(0, 1, 2, 3)));
+        Annotation annot2 = new Annotation("label 2", Arrays.asList(new Rectangle(4, 5, 6, 7)));
         doc1.addAnnotation(annot1);
         doc1.addAnnotation(annot2);
         svgFileDAO.writeDocument(doc1);
